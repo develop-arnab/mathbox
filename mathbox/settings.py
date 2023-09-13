@@ -97,8 +97,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mathbox',
-        'USER': 'root',
-        'PASSWORD': '',
+        'USER': 'cloudman',
+        'PASSWORD': 'cloudkey@123',
         'HOST': 'localhost',  # Or the host where your MySQL server is running
         'PORT': '',           # Leave this empty for the default MySQL port (3306)
     }
