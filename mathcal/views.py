@@ -1,21 +1,20 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 import json
-# Create your views here.
 from rest_framework import generics
 from rest_framework.response import Response
-from .models import Chapter, Formula, CalculationResult
+from .models import Chapter, Formula, CalculationResult, Question, Topic
 from django.utils.decorators import method_decorator
 from .serializers import ChapterSerializer, FormulaSerializer, CalculationResultSerializer
-
-import numpy as np  # Import Numpy for matrix operations
+import numpy as np 
 import sympy as sp
 import matplotlib
 matplotlib.use('Agg')  # Set the Matplotlib backend to Agg before importing pyplot
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
-
+from scipy import stats
+from scipy.stats import linregress
 
 class PlotFunctionView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
@@ -88,6 +87,30 @@ class CalculationView(generics.CreateAPIView):
             serializer.validated_data['result'] = result
         elif formula.name == 'Cross Product of Vectors':
             result = self.vector_cross_product(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Solve Linear Equations':
+            result = self.solve_linear_equations(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Mean':
+            result = self.calculate_mean(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Median':
+            result = self.calculate_median(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Mode':
+            result = self.calculate_mode(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Variance':
+            result = self.calculate_variance(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Standard Deviation':
+            result = self.calculate_standard_deviation(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Correlation Coefficient':
+            result = self.calculate_correlation_coefficient(input_values)
+            serializer.validated_data['result'] = result
+        elif formula.name == 'Regression Analysis':
+            result = self.perform_regression_analysis(input_values)
             serializer.validated_data['result'] = result
 
         serializer.save(formula=formula, input_values=input_values)
@@ -228,3 +251,90 @@ class CalculationView(generics.CreateAPIView):
         data.append({'input': matrix.tolist()})
         data.append({'sum': out_arr.tolist()})
         return data
+    def solve_linear_equations(self, input_values):
+        print("INPUT matrix ", input_values)
+        coefficients = np.array(input_values['coefficients'])
+        constants = np.array(input_values['constants'])
+        try:
+            solution = np.linalg.solve(coefficients, constants)
+            return solution.tolist()
+        except np.linalg.LinAlgError:
+            return "No unique solution exists."
+    def calculate_mean(self, input_values):
+        data = np.array(input_values['data'])
+        return np.mean(data)
+    def calculate_median(self, input_values):
+        data = np.array(input_values['data'])
+        return np.median(data)
+    def calculate_mode(self, input_values):
+        data = np.array(input_values['data'])
+        mode = stats.mode(data)
+        return mode.mode.tolist()
+    def calculate_variance(self, input_values):
+        data = np.array(input_values['data'])
+        return np.var(data)
+    def calculate_standard_deviation(self, input_values):
+        data = np.array(input_values['data'])
+        return np.std(data)
+    def calculate_correlation_coefficient(self, input_values):
+        data_x = np.array(input_values['data_x'])
+        data_y = np.array(input_values['data_y'])
+        correlation = np.corrcoef(data_x, data_y)
+        return correlation[0, 1]
+    def perform_regression_analysis(self, input_values):
+        data_x = np.array(input_values['data_x'])
+        data_y = np.array(input_values['data_y'])
+        slope, intercept, r_value, p_value, std_err = linregress(data_x, data_y)
+        return {
+            "slope": slope,
+            "intercept": intercept,
+            "r_value": r_value,
+            "p_value": p_value,
+            "std_err": std_err
+        }
+    def perform_regression_analysis(self, input_values):
+        data_x = np.array(input_values['data_x'])
+        data_y = np.array(input_values['data_y'])
+        slope, intercept, r_value, p_value, std_err = linregress(data_x, data_y)
+        return {
+            "slope": slope,
+            "intercept": intercept,
+            "r_value": r_value,
+            "p_value": p_value,
+            "std_err": std_err
+        }
+
+def get_questions_by_topic(request, topic_id):
+    try:
+        questions = Question.objects.filter(topic__pk=topic_id)
+        if questions:
+            data = [{
+                'question_text': question.question_text,
+                'choices': [
+                    question.choice_1,
+                    question.choice_2,
+                    question.choice_3,
+                    question.choice_4
+                ],
+                'correct_choice': question.correct_choice
+            } for question in questions]
+
+            return JsonResponse({'questions': data})
+        else:
+            return JsonResponse({'message': 'No questions available for this topic'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+    
+def get_formulas_by_chapter(request, chapter_id):
+    try:
+        formulas = Formula.objects.filter(chapter__pk=chapter_id)
+        print("Fors ",formulas)
+        allFormulas = []
+        for formula in formulas:
+            print("Folmula ", formula.name, "ID ", formula.id)
+            obj = {"id" : formula.id, "name": formula.name}
+            allFormulas.append(obj)
+
+        return JsonResponse({'formulas': allFormulas})
+    except Exception as e:
+        return JsonResponse({'error': str(e)})

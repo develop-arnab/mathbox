@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+zh!7vt6-ireh8c7#78q$48^0!)sij7%g1j^!6scwglu0c#c)$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', "127.0.0.1","localhost"]
 
 
 # Application definition
@@ -43,11 +43,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -87,7 +87,8 @@ WSGI_APPLICATION = 'mathbox.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Replace with your frontend's URL
-    "http://127.0.0.1:3000",  # Replace with your frontend's URL
+    "http://127.0.0.1:3000",
+        # Replace with your frontend's URL
     # "http://yourdomain.com",  # Add more allowed origins as needed
     # ...
 ]
@@ -97,8 +98,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mathbox',
-        'USER': 'cloudman',
-        'PASSWORD': 'cloudkey@123',
+        'USER': 'root',
+        'PASSWORD': '',
         'HOST': 'localhost',  # Or the host where your MySQL server is running
         'PORT': '',           # Leave this empty for the default MySQL port (3306)
     }
