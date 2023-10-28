@@ -55,7 +55,6 @@ class CalculationView(generics.CreateAPIView):
 
         if formula.name == 'Cross Product of Matrices':
             result = self.calculate_cross_product(input_values)
-            # Convert the nested list result to JSON
             result_json = json.dumps(result)
             serializer.validated_data['result'] = result_json
         elif formula.name == 'Determinant of a Matrix':
@@ -112,6 +111,10 @@ class CalculationView(generics.CreateAPIView):
         elif formula.name == 'Regression Analysis':
             result = self.perform_regression_analysis(input_values)
             serializer.validated_data['result'] = result
+        elif formula.name == 'Solve Quadratic Equations':
+            result = self.solve_quadratic_equation(input_values)
+            result_json = json.dumps(result)
+            serializer.validated_data['result'] = result_json
 
         serializer.save(formula=formula, input_values=input_values)
 
@@ -251,15 +254,6 @@ class CalculationView(generics.CreateAPIView):
         data.append({'input': matrix.tolist()})
         data.append({'sum': out_arr.tolist()})
         return data
-    def solve_linear_equations(self, input_values):
-        print("INPUT matrix ", input_values)
-        coefficients = np.array(input_values['coefficients'])
-        constants = np.array(input_values['constants'])
-        try:
-            solution = np.linalg.solve(coefficients, constants)
-            return solution.tolist()
-        except np.linalg.LinAlgError:
-            return "No unique solution exists."
     def calculate_mean(self, input_values):
         data = np.array(input_values['data'])
         return np.mean(data)
@@ -303,6 +297,22 @@ class CalculationView(generics.CreateAPIView):
             "p_value": p_value,
             "std_err": std_err
         }
+    def solve_linear_equations(self, input_values):
+        print("INPUT matrix ", input_values)
+        coefficients = np.array(input_values['coefficients'])
+        constants = np.array(input_values['constants'])
+        try:
+            solution = np.linalg.solve(coefficients, constants)
+            return solution.tolist()
+        except np.linalg.LinAlgError:
+            return "No unique solution exists."
+    def solve_quadratic_equation(self, input_equation):
+        x = sp.symbols('x')
+        eq = sp.Eq(sp.simplify(input_equation), 0)
+        print("EQ ", eq)
+        # Use sympy to solve for x
+        solutions = sp.solve(eq, x)
+        return str(solutions)
 
 def get_questions_by_topic(request, topic_id):
     try:
